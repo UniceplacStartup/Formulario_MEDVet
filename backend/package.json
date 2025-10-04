@@ -1,0 +1,35 @@
+{
+  "name": "formul-rio_medvet",
+  "version": "1.0.0",
+  "description": "Um formulário de análise para as consultas dos animais visitantes do público, em formato de relatório",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UniceplacStartup/Formul-rio_MEDVet.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UniceplacStartup/Formul-rio_MEDVet/issues"
+  },
+  "homepage": "https://github.com/UniceplacStartup/Formul-rio_MEDVet#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "eslint": "^9.37.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
+  }
+
+  
+}

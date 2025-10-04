@@ -1,0 +1,9 @@
+# Ignora todas as pastas node_modules no projeto
+**/node_modules
+
+# Ignora todos os arquivos .env
+**/.env
+
+# Logs
+logs
+*.log
