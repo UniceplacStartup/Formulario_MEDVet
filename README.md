@@ -5,18 +5,18 @@
 
 ## 📄 Sobre o Projeto
 
-[cite_start]O **Sistema MedVet** é uma aplicação web SaaS (Software as a Service) projetada para auxiliar clínicas veterinárias a realizar o registro e o acompanhamento do histórico dietético de seus pacientes[cite: 101, 102]. A plataforma permite o cadastro de clínicas, múltiplos usuários, o preenchimento de formulários detalhados e a geração de relatórios nutricionais.
+O **Sistema MedVet** é uma aplicação web SaaS (Software as a Service) projetada para auxiliar clínicas veterinárias a realizar o registro e o acompanhamento do histórico dietético de seus pacientes. A plataforma permite o cadastro de clínicas, múltiplos usuários, o preenchimento de formulários detalhados e a geração de relatórios nutricionais.
 
 Este repositório é um **monorepo**, contendo tanto o código do `backend` quanto do `frontend`.
 
 ## ✨ Funcionalidades Principais
 
-- [cite_start]**Cadastro de Clínicas:** As clínicas podem se cadastrar no sistema de forma segura[cite: 73, 97].
-- [cite_start]**Gerenciamento de Usuários:** Cada clínica pode ter múltiplos usuários internos, como veterinários e atendentes[cite: 73].
-- [cite_start]**Formulário Dietético Completo:** Preenchimento de um formulário detalhado com informações sobre alimentos, suplementos, frequência e quantidades da dieta do animal[cite: 73, 85].
-- [cite_start]**Cálculos Automatizados:** O sistema realiza o cálculo automático das necessidades nutricionais (EM, NEM) com base nos dados fornecidos[cite: 73, 90].
-- [cite_start]**Geração de Relatórios PDF:** Criação de um relatório profissional em PDF com todos os dados da consulta, pronto para ser entregue ao tutor do animal[cite: 73, 105].
-- [cite_start]**Histórico de Pacientes:** Acesso fácil a todos os relatórios e formulários anteriores de um animal, permitindo o acompanhamento de sua evolução[cite: 73, 109].
+- **Cadastro de Clínicas:** As clínicas podem se cadastrar no sistema de forma segura.
+- **Gerenciamento de Usuários:** Cada clínica pode ter múltiplos usuários internos, como veterinários e atendentes.
+- **Formulário Dietético Completo:** Preenchimento de um formulário detalhado com informações sobre alimentos, suplementos, frequência e quantidades da dieta do animal.
+- **Cálculos Automatizados:** O sistema realiza o cálculo automático das necessidades nutricionais (EM, NEM) com base nos dados fornecidos.
+- **Geração de Relatórios PDF:** Criação de um relatório profissional em PDF com todos os dados da consulta, pronto para ser entregue ao tutor do animal.
+- **Histórico de Pacientes:** Acesso fácil a todos os relatórios e formulários anteriores de um animal, permitindo o acompanhamento de sua evolução.
 
 ## 🛠️ Stack Tecnológica
 
@@ -24,10 +24,10 @@ As tecnologias escolhidas para este projeto visam produtividade, escalabilidade 
 
 | Parte | Tecnologia | Descrição |
 | :--- | :--- | :--- |
-| **Backend** | **Node.js com Express.js** | [cite_start]Criação da API RESTful de forma ágil e em JavaScript[cite: 6]. |
-| **Frontend** | **Vue.js (com Vite)** | [cite_start]Framework moderno e amigável para a construção de interfaces reativas[cite: 6, 14]. |
-| **Banco de Dados** | **PostgreSQL** | [cite_start]Banco de dados relacional robusto e confiável para garantir a segurança das informações[cite: 7, 19]. |
-| **Linguagem** | **JavaScript/TypeScript** | [cite_start]Uso de JavaScript em toda a stack para unificar o conhecimento[cite: 10], com TypeScript no frontend para maior segurança. |
+| **Backend** | **Node.js com Express.js** | Criação da API RESTful de forma ágil e em JavaScript. |
+| **Frontend** | **Vue.js (com Vite)** | Framework moderno e amigável para a construção de interfaces reativas. |
+| **Banco de Dados** | **PostgreSQL** | Banco de dados relacional robusto e confiável para garantir a segurança das informações. |
+| **Linguagem** | **JavaScript/TypeScript** | Uso de JavaScript em toda a stack para unificar o conhecimento, com TypeScript no frontend para maior segurança. |
 
 ## 🚀 Como Rodar o Projeto (Ambiente de Desenvolvimento)
 
