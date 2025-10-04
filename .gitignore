@@ -1,8 +1,8 @@
-# Dependencies
-node_modules/
+# Ignora todas as pastas node_modules no projeto
+**/node_modules
 
-# Environment variables
-.env
+# Ignora todos os arquivos .env
+**/.env
 
 # Logs
 logs
