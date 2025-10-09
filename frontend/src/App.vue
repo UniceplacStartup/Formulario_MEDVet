@@ -1,5 +1,3 @@
-// frontend/src/App.vue
-
 <script setup>
 import { RouterView } from 'vue-router'
 </script>
@@ -10,4 +8,10 @@ import { RouterView } from 'vue-router'
 
 <style scoped>
 
+#app {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
 </style>

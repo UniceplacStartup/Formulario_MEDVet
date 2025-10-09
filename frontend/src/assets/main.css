@@ -1,12 +1,32 @@
+/* Importa o CSS base com resets e variáveis de cores */
 @import './base.css';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+/*
+  Garante que o box-sizing seja mais intuitivo.
+  Isso previne que padding e bordas aumentem o tamanho final dos elementos.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
+/*
+  Força os elementos raiz (html, body) e o container da aplicação (#app)
+  a ocuparem 100% da altura e largura da tela, sem margens.
+*/
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Estilos padrão para links (mantidos do ficheiro original).
+  É bom para a consistência visual.
+*/
 a,
 .green {
   text-decoration: none;
@@ -18,18 +38,5 @@ a,
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
   }
 }
