@@ -4,7 +4,7 @@
   "description": "Um formulário de análise para as consultas dos animais visitantes do público, em formato de relatório",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "lint": "eslint ."
@@ -21,15 +21,16 @@
   },
   "homepage": "https://github.com/UniceplacStartup/Formul-rio_MEDVet#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3"
   },
   "devDependencies": {
     "eslint": "^9.37.0",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2"
   }
-
-  
 }
