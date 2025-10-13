@@ -6,6 +6,11 @@ const { encryptPassword } = require('../utils/bcrypt');
 const createClinic = async (req, res) => {
     const { cnpj, razaoSocial, email, telefone, senha } = req.body;
 
+    if (cnpj === undefined || razaoSocial === undefined || email === undefined || telefone === undefined || senha === undefined) {
+        res.status(400).json();
+        return
+    }
+
     const clinic = new Clinic.Clinic(cnpj, razaoSocial, email, telefone, await encryptPassword(senha));
 
     // need to add database logic 
