@@ -2,11 +2,12 @@ const Clinic = require('../models/Clinic');
 
 const { createToken } = require('../utils/jwt');
 const { encryptPassword } = require('../utils/bcrypt');
+const { isNotUndefined, validatePassword, validateCnpj } = require('../utils/validateInput');
 
 const createClinic = async (req, res) => {
     const { cnpj, razaoSocial, email, telefone, senha } = req.body;
 
-    if (cnpj === undefined || razaoSocial === undefined || email === undefined || telefone === undefined || senha === undefined) {
+    if (validateCnpj(cnpj) || isNotUndefined(razaoSocial) || isNotUndefined(email) || isNotUndefined(telefone) || validatePassword(senha)) {
         res.status(400).json();
         return
     }
