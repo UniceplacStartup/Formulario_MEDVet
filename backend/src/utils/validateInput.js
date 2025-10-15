@@ -1,27 +1,29 @@
-const isNotUndefined = (data) => {
-    if (data === undefined) { return false }
-    return true 
+const isUndefined = (data) => {
+    if (data === undefined) { return true }
+    return false
 }
 
-const validateCnpj = (cnpj) => {
-    if (cnpj === undefined) { return false }
-    if (cnpj.length !== 14) { return false }
-    if (cnpj.match(/[a-z]/g) !== null) { return false }
-    if (cnpj.match(/[A-Z]/g) !== null) { return false }
-    return true 
+const invalidCnpj = (cnpj) => {
+    if (cnpj === undefined) { return true }
+    cnpj = cnpj.trim()
+    if (cnpj.length !== 14) { return true }
+    if (cnpj.match(/[a-z]/g) !== null) { return true }
+    if (cnpj.match(/[A-Z]/g) !== null) { return true }
+    return false
 }
 
-const validatePassword = (password) => {
-    if (password === undefined) { return false }
-    if (password.length < 8) { return false }
-    if (password.match(/[a-z]/g) === null) { return false }
-    if (password.match(/[A-Z]/g) === null) { return false }
-    if (password.match(/[0-9]/g) === null) { return false }
-    return true 
+const invalidPassword = (password) => {
+    if (password === undefined) { return true }
+    password = password.trim()
+    if (password.length < 8) { return true }
+    if (password.match(/[a-z]/g) === null) { return true }
+    if (password.match(/[A-Z]/g) === null) { return true }
+    if (password.match(/[0-9]/g) === null) { return true }
+    return false
 }
 
 module.exports = {
-    isNotUndefined,
-    validateCnpj,
-    validatePassword,
+    isUndefined,
+    invalidCnpj,
+    invalidPassword,
 };

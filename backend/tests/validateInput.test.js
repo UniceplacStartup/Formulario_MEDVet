@@ -1,47 +1,51 @@
 const {expect, test} = require('@jest/globals');
 
-const { isNotUndefined, validateCnpj, validatePassword } = require('../src/utils/validateInput');
+const { isUndefined, invalidCnpj, invalidPassword } = require('../src/utils/validateInput');
 
 test('undefined Input', () => {
-    expect(isNotUndefined(undefined)).toBeFalsy()
+    expect(isUndefined(undefined)).toBeTruthy()
 });
 
 test('valid Input', () => {
-    expect(isNotUndefined('12345')).toBeTruthy()
+    expect(isUndefined('12345')).toBeFalsy()
 });
 
 test('undefined passwords', () => {
-    expect(validatePassword(undefined)).toBeFalsy()
+    expect(invalidPassword(undefined)).toBeTruthy()
 });
 
 test('small passwords', () => {
-    expect(validatePassword('Aa1')).toBeFalsy()
+    expect(invalidPassword('Aa1')).toBeTruthy()
 });
 
 test('no lowercase passwords', () => {
-    expect(validatePassword('A1234567')).toBeFalsy()
+    expect(invalidPassword('A1234567')).toBeTruthy()
 });
 
 test('no uppercase passwords', () => {
-    expect(validatePassword('a1234567')).toBeFalsy()
+    expect(invalidPassword('a1234567')).toBeTruthy()
+});
+
+test('white spaces passwords', () => {
+    expect(invalidPassword('Aa1234    ')).toBeTruthy()
 });
 
 test('valid passwords', () => {
-    expect(validatePassword('Aa123456')).toBeTruthy()
+    expect(invalidPassword('Aa123456')).toBeFalsy()
 });
 
 test('small cnpj', () => {
-    expect(validateCnpj('12345')).toBeFalsy()
+    expect(invalidCnpj('12345')).toBeTruthy()
 });
 
 test('big cnpj', () => {
-    expect(validateCnpj('12345678901234567890')).toBeFalsy()
+    expect(invalidCnpj('12345678901234567890')).toBeTruthy()
 });
 
 test('letter in cnpj', () => {
-    expect(validateCnpj('A1234567890123')).toBeFalsy()
+    expect(invalidCnpj('A1234567890123')).toBeTruthy()
 });
 
 test('valid cnpj', () => {
-    expect(validateCnpj('12345678912345')).toBeTruthy()
+    expect(invalidCnpj('12345678912345')).toBeFalsy()
 });
