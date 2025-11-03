@@ -1,6 +1,7 @@
 const db = require('../config/database');
 
 class Clinic {
+    id;
     cnpj;
     razaoSocial;
     email; 

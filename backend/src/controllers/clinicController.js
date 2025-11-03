@@ -3,7 +3,7 @@ const Clinic = require('../models/Clinic');
 const { isUndefined, invalidCnpj, invalidEmail } = require('../utils/validateInput');
 
 const createClinic = async (req, res) => {
-    const { cnpj, razaoSocial, email, telefone, senha } = req.body;
+    const { cnpj, razaoSocial, email, telefone } = req.body;
 
     if (invalidCnpj(cnpj) || isUndefined(razaoSocial) || invalidEmail(email) || isUndefined(telefone)) {
         res.status(400).json();
