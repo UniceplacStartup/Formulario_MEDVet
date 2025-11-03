@@ -31,6 +31,9 @@ app.get('/', (req, res) => {
 const clinicRoutes = require('./routes/clinicRoutes');
 app.use('/api', clinicRoutes); // Todas as rotas de clínica começarão com /api
 
+const UserRoutes = require('./routes/UserRoutes');
+app.use('/api', UserRoutes);
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });

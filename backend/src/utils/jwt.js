@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const secretKey = process.env.SECRETKEY;
 
-const createToken = (clinic) => {
-    return jwt.sign({ cnpj: clinic.cnpj }, secretKey, {expiresIn: '7 days'});
+const createToken = (user) => {
+    return jwt.sign({ nome: user.nome, role: user.role }, secretKey, {expiresIn: '7 days'});
 }
 
 const getSubjectFromToken = (token) => {

@@ -1,15 +1,15 @@
-const Clinic = require('../src/models/Clinic');
+const User = require('../src/models/User');
 const {expect, test} = require('@jest/globals');
 
 const { createToken, getSubjectFromToken } = require('../src/utils/jwt');
 
 test('create token', () => {
-    const clinic = new Clinic.Clinic('1', '2', '3', '4', '5');
-    expect(createToken(clinic)).toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.');
+    const user = new User.User('1', '2', '3', '4', '5');
+    expect(createToken(user)).toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.');
 });
 test('get subject from token', () => {
-    const clinic = new Clinic.Clinic('1', '2', '3', '4', '5');
-    const token = createToken(clinic);
+    const user = new User.User('1', '2', '3', '4', '5');
+    const token = createToken(user);
     const subject = getSubjectFromToken(token); 
-    expect(subject.cnpj).toBe('1');
+    expect(subject.nome).toBe('1');
 });
