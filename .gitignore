@@ -3,6 +3,7 @@
 
 # Ignora todos os arquivos .env
 **/.env
+backend/.env
 
 # Logs
 logs
