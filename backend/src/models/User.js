@@ -19,7 +19,15 @@ class User {
     }
 
     async save() {
-        await db.query('INSERT INTO usuarios(clinica_id, nome, email, password_hash, role) VALUES($1, $2, $3, $4, $5)', [this.clinic_id, this.nome, this.email, this.password, this.role]); 
+        const result = await db.query(
+            'INSERT INTO usuarios(clinica_id, nome, email, password_hash, role) VALUES($1, $2, $3, $4, $5) RETURNING *',
+            [this.clinic_id, this.nome, this.email, this.password, this.role]
+        );
+        const row = result.rows[0];
+        this.id = row.id;
+        this.created_at = row.created_at;
+        this.updated_at = row.updated_at;
+        return this;
     }
 
     async findByEmail(email) {

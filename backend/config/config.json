@@ -1,6 +1,10 @@
 {
   "development": {
-    "use_env_variable": "DATABASE_URL",
+    "username": "postgres",
+    "password": "postgres",
+    "database": "univet_db",
+    "host": "localhost",
+    "port": 5432,
     "dialect": "postgres"
   },
   "test": {
