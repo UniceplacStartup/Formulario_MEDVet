@@ -1,6 +1,25 @@
 const db = require('../config/database');
 const { computeFormCalculation } = require('../services/calculationService');
 
+function normalizeCalcRow(row) {
+  if (!row) return row;
+  return {
+    ...row,
+    em_total_kcal_dia:
+      row.em_total_kcal_dia === null || row.em_total_kcal_dia === undefined
+        ? null
+        : Number(row.em_total_kcal_dia),
+    nem_calculada_kcal_dia:
+      row.nem_calculada_kcal_dia === null || row.nem_calculada_kcal_dia === undefined
+        ? null
+        : Number(row.nem_calculada_kcal_dia),
+    quantidade_racao_recomendada_g_dia:
+      row.quantidade_racao_recomendada_g_dia === null || row.quantidade_racao_recomendada_g_dia === undefined
+        ? null
+        : Number(row.quantidade_racao_recomendada_g_dia),
+  };
+}
+
 // Create (upsert by formulario_id)
 const upsertFormCalculation = async (req, res) => {
   try {
@@ -23,7 +42,7 @@ const upsertFormCalculation = async (req, res) => {
          VALUES ($1,$2,$3,$4) RETURNING *`,
         [Number(formulario_id), em_total_kcal_dia ?? null, nem_calculada_kcal_dia ?? null, quantidade_racao_recomendada_g_dia ?? null]
       );
-      return res.status(201).json(insert.rows[0]);
+      return res.status(201).json(normalizeCalcRow(insert.rows[0]));
     } catch (e) {
       if (e && e.code === '23505') {
         const update = await db.query(
@@ -34,7 +53,7 @@ const upsertFormCalculation = async (req, res) => {
            WHERE formulario_id = $1 RETURNING *`,
           [Number(formulario_id), em_total_kcal_dia ?? null, nem_calculada_kcal_dia ?? null, quantidade_racao_recomendada_g_dia ?? null]
         );
-        return res.status(200).json(update.rows[0]);
+        return res.status(200).json(normalizeCalcRow(update.rows[0]));
       }
       throw e;
     }
@@ -53,7 +72,7 @@ const listFormCalculations = async (req, res) => {
       sql += ` WHERE formulario_id = $${params.length}`;
     }
     const { rows } = await db.query(sql, params);
-    return res.status(200).json(rows);
+    return res.status(200).json(rows.map(normalizeCalcRow));
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao listar cálculos', details: err.message });
   }
@@ -64,7 +83,7 @@ const getFormCalculationById = async (req, res) => {
     const { id } = req.params;
     const { rows } = await db.query('SELECT * FROM calculos_formulario WHERE id=$1', [Number(id)]);
     if (!rows.length) return res.status(404).json();
-    return res.status(200).json(rows[0]);
+    return res.status(200).json(normalizeCalcRow(rows[0]));
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao buscar cálculo', details: err.message });
   }

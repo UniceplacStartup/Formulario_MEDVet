@@ -1,4 +1,5 @@
 const Clinic = require('../models/Clinic');
+const db = require('../config/database');
 
 const { isUndefined, invalidCnpj, invalidEmail } = require('../utils/validateInput');
 
@@ -33,4 +34,14 @@ const createClinic = async (req, res) => {
 
 module.exports = {
     createClinic,
+    // Lista todas as clínicas (suporte ao frontend)
+    async listClinics(req, res) {
+        try {
+            const { rows } = await db.query('SELECT * FROM clinicas ORDER BY id ASC');
+            res.status(200).json(rows);
+        } catch (err) {
+            console.error('Erro ao listar clínicas:', err);
+            res.status(500).json({ error: 'Erro ao listar clínicas', details: err.message });
+        }
+    },
 };
