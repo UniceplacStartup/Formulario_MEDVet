@@ -23,17 +23,23 @@ class User {
     }
 
     async findByEmail(email) {
-        const result = await db.query('SELECT * FROM usuarios WHERE email=$1', [email]);
-        const user = result.rows.pop();
-        this.id = user.id;
-        this.clinic_id = user.clinica_id;
-        this.nome = user.nome;
-        this.email = user.email;
-        this.password = user.password_hash;
-        this.role = user.role;
-        this.created_at = user.created_at;
-        this.updated_at = user.updated_at;
+    const result = await db.query('SELECT * FROM usuarios WHERE email=$1', [email]);
+    const user = result.rows.pop();
+    
+    if (!user) {
+        return false; // Retorna false se o usuário não for encontrado
     }
+
+    this.id = user.id;
+    this.clinic_id = user.clinica_id;
+    this.nome = user.nome;
+    this.email = user.email;
+    this.password = user.password_hash;
+    this.role = user.role;
+    this.created_at = user.created_at;
+    this.updated_at = user.updated_at;
+    return true; 
+}
 }
 
 module.exports = { User };

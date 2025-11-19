@@ -34,6 +34,9 @@ app.use('/api', clinicRoutes); // Todas as rotas de clínica começarão com /ap
 const UserRoutes = require('./routes/UserRoutes');
 app.use('/api', UserRoutes);
 
+const tutorRoutes = require('./routes/tutorRoutes'); 
+app.use('/api', tutorRoutes);
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
