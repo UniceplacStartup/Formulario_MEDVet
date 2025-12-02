@@ -22,6 +22,8 @@ class Patient {
         this.peso_ideal = peso_ideal;
     }
 
+
+    //TODO avaliar a necessidade de usar o clinica_id  e corrigir o erro ao cadastrar um novo paciente.
     async save() {
         await db.query('INSERT INTO pacientes(tutor_id, clinica_id, nome, especie,  raca, data_nascimento, peso_ideal) VALUES($1, $2, $3, $4, $5, $6, $7)', [
             this.tutor_id,

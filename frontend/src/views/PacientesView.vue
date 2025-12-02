@@ -101,7 +101,7 @@
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody> 
             <tr v-for="paciente in pacientes" :key="paciente.id">
               <td>{{ paciente.nome }}</td>
               <td>{{ paciente.especie === 'cao' ? 'Cão' : 'Gato' }}</td>

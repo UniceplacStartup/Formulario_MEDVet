@@ -6,6 +6,24 @@
     </header>
 
     <div class="page-content">
+      <!-- Progress Indicator (Category 1: Layout/Organization) -->
+      <div class="progress-container">
+        <div :class="['progress-step', { active: !currentFormularioId || step === 1 }]">
+          <div class="step-number">1</div>
+          <div class="step-label">Paciente</div>
+        </div>
+        <div class="progress-line" :class="{ active: currentFormularioId && !resultadoCalculo }"></div>
+        <div :class="['progress-step', { active: currentFormularioId && !resultadoCalculo }]">
+          <div class="step-number">2</div>
+          <div class="step-label">Alimentos</div>
+        </div>
+        <div class="progress-line" :class="{ active: resultadoCalculo }"></div>
+        <div :class="['progress-step', { active: resultadoCalculo }]">
+          <div class="step-number">3</div>
+          <div class="step-label">Resultados</div>
+        </div>
+      </div>
+
       <!-- Step 1: Selecionar Paciente e Criar Formulário -->
       <div v-if="!currentFormularioId" class="form-card">
         <h2>1️⃣ Novo Formulário Dietético</h2>
@@ -31,15 +49,6 @@
               <label>Peso Atual (kg) *</label>
               <input v-model.number="formularioForm.peso_atual" type="number" step="0.1" required />
             </div>
-            <div class="form-group">
-              <label>Escore de Condição Corporal (1-9)</label>
-              <input
-                v-model.number="formularioForm.escore_condicao_corporal"
-                type="number"
-                min="1"
-                max="9"
-              />
-            </div>
           </div>
 
           <div class="form-group">
@@ -54,7 +63,21 @@
       </div>
 
       <!-- Step 2: Adicionar Alimentos -->
-      <div v-if="currentFormularioId" class="form-card">
+      <div v-if="currentFormularioId && !resultadoCalculo" class="form-card">
+        <div class="patient-info" v-if="selectedPatient">
+          <div class="info-item">
+            <span class="info-label">Paciente:</span>
+            <span class="info-value">{{ selectedPatient.nome }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Espécie:</span>
+            <span class="info-value">{{ selectedPatient.especie === 'cao' ? 'Cão' : 'Gato' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Peso Ideal:</span>
+            <span class="info-value">{{ selectedPatient.peso_ideal }} kg</span>
+          </div>
+        </div>
         <h2>2️⃣ Adicionar Alimentos Consumidos</h2>
         <form @submit.prevent="adicionarAlimento">
           <div class="form-row">
@@ -115,22 +138,32 @@
             </thead>
             <tbody>
               <tr v-for="alimento in alimentos" :key="alimento.id">
-                <td>{{ alimento.nome_alimento }}</td>
+                <td>{{ alimento.descricao_alimento }}</td>
                 <td>{{ alimento.quantidade_g_dia }}</td>
                 <td>{{ alimento.proteina_bruta_p || '-' }}</td>
                 <td>{{ alimento.extrato_etereo_p || '-' }}</td>
                 <td>{{ alimento.extrativo_nao_nitrogenado_p || '-' }}</td>
                 <td>
-                  <button @click="removerAlimento(alimento.id)" class="btn-delete">🗑️</button>
+                  <button @click="confirmRemoverAlimento(alimento.id, alimento.descricao_alimento)" class="btn-delete">🗑️</button>
                 </td>
               </tr>
             </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="1" style="font-weight: bold;">Total</td>
+                <td style="font-weight: bold; background: #f7fafc;">{{ alimentosTotalQtd }} g</td>
+                <td colspan="4" style="color: #718096; font-size: 12px;">{{ alimentos.length }} alimento(s)</td>
+              </tr>
+            </tfoot>
           </table>
+        </div>
+        <div v-else class="empty-state" style="margin-top: 20px;">
+          <p style="color: #718096; text-align: center;">Nenhum alimento adicionado ainda. Complete o formulário acima.</p>
         </div>
       </div>
 
       <!-- Step 3: Calcular e Exibir Resultados -->
-      <div v-if="currentFormularioId" class="calc-card">
+      <div v-if="currentFormularioId && !resultadoCalculo" class="calc-card">
         <h2>3️⃣ Calcular Necessidades Nutricionais</h2>
         <p class="calc-info">
           Com base no peso do paciente e nos alimentos cadastrados, o sistema calculará:
@@ -142,45 +175,87 @@
         </ul>
 
         <div class="calc-actions">
-          <button @click="calcularDieta" class="btn-calc" :disabled="loading">
+          <button @click="calcularDieta" class="btn-calc" :disabled="loading || alimentos.length === 0">
             {{ loading ? 'Calculando...' : '🧮 Calcular Dieta' }}
           </button>
-          <button @click="resetFormulario" class="btn-secondary">Novo Formulário</button>
+          <button @click="confirmNovoFormulario" class="btn-secondary">Novo Formulário</button>
         </div>
 
-        <!-- Resultados -->
-        <div v-if="resultadoCalculo" class="resultado-card">
-          <h3>✅ Resultados do Cálculo</h3>
-          <div class="resultado-grid">
-            <div class="resultado-item">
-              <span class="resultado-label">EM Total</span>
-              <span class="resultado-value">
-                {{ fmt2(resultadoCalculo.em_total_kcal_dia) }} kcal/dia
-              </span>
-            </div>
-            <div class="resultado-item">
-              <span class="resultado-label">NEM Calculada</span>
-              <span class="resultado-value">
-                {{ fmt2(resultadoCalculo.nem_calculada_kcal_dia) }} kcal/dia
-              </span>
-            </div>
-            <div class="resultado-item resultado-destaque">
-              <span class="resultado-label">Quantidade Recomendada</span>
-              <span class="resultado-value">
-                {{ fmt2(resultadoCalculo.quantidade_racao_recomendada_g_dia) }} g/dia
-              </span>
+        <div v-if="error" class="error">{{ error }}</div>
+      </div>
+
+      <!-- Results Display -->
+      <div v-if="resultadoCalculo" class="resultado-card">
+        <div class="resultado-header">
+          <h3>✅ Resultados do Cálculo Nutricional</h3>
+          <button @click="confirmNovoFormulario" class="btn-close">✕</button>
+        </div>
+        
+        <div v-if="selectedPatient" class="patient-summary">
+          <div class="summary-section">
+            <h4>Informações do Paciente</h4>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Nome</span>
+                <span class="summary-value">{{ selectedPatient.nome }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Espécie</span>
+                <span class="summary-value">{{ selectedPatient.especie === 'cao' ? 'Cão' : 'Gato' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Peso Avaliado</span>
+                <span class="summary-value">{{ formularioForm.peso_atual }} kg</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Peso Ideal</span>
+                <span class="summary-value">{{ selectedPatient.peso_ideal }} kg</span>
+              </div>
+              <div class="summary-item" v-if="pesoComparacao">
+                <span class="summary-label">Diferença</span>
+                <span class="summary-value" :class="{ 'above-ideal': pesoComparacao > 0, 'below-ideal': pesoComparacao < 0 }">
+                  {{ pesoComparacao > 0 ? '+' : '' }}{{ fmt2(pesoComparacao) }} kg
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div v-if="error" class="error">{{ error }}</div>
+        <div class="resultado-grid">
+          <div class="resultado-item">
+            <span class="resultado-label">EM Total</span>
+            <span class="resultado-value">
+              {{ fmt2(resultadoCalculo.em_total_kcal_dia) }}<span class="resultado-unit">kcal/dia</span>
+            </span>
+            <span class="resultado-desc">Energia dos alimentos</span>
+          </div>
+          <div class="resultado-item">
+            <span class="resultado-label">NEM Calculada</span>
+            <span class="resultado-value">
+              {{ fmt2(resultadoCalculo.nem_calculada_kcal_dia) }}<span class="resultado-unit">kcal/dia</span>
+            </span>
+            <span class="resultado-desc">Necessidade de manutenção</span>
+          </div>
+          <div class="resultado-item resultado-destaque">
+            <span class="resultado-label">Quantidade Recomendada</span>
+            <span class="resultado-value">
+              {{ fmt2(resultadoCalculo.quantidade_racao_recomendada_g_dia) }}<span class="resultado-unit">g/dia</span>
+            </span>
+            <span class="resultado-desc">De ração/alimento</span>
+          </div>
+        </div>
+
+        <div class="resultado-actions">
+          <button @click="confirmNovoFormulario" class="btn-primary">Novo Formulário</button>
+          <RouterLink to="/dashboard" class="btn-secondary">Ir para Dashboard</RouterLink>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import {
   pacientesAPI,
   formulariosAPI,
@@ -196,12 +271,13 @@ const currentFormularioId = ref<number | null>(null)
 const resultadoCalculo = ref<any>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
+const step = ref(1)
+const selectedPatient = ref<any>(null)
 
 const formularioForm = ref({
   paciente_id: '',
   data_avaliacao: new Date().toISOString().split('T')[0],
   peso_atual: null as number | null,
-  escore_condicao_corporal: null as number | null,
   observacoes: '',
 })
 
@@ -258,6 +334,8 @@ async function criarFormulario() {
     })
 
     currentFormularioId.value = response.id
+    selectedPatient.value = pacientes.value.find(p => p.id === Number(formularioForm.value.paciente_id))
+    step.value = 2
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erro ao criar formulário'
   } finally {
@@ -272,7 +350,12 @@ async function adicionarAlimento() {
 
     await alimentosAPI.create({
       formulario_id: currentFormularioId.value,
-      ...alimentoForm.value,
+      descricao_alimento: alimentoForm.value.nome_alimento, // Renomear para descricao_alimento
+      quantidade_g_dia: alimentoForm.value.quantidade_g_dia, // Certifique-se de que este campo está preenchido
+      proteina_bruta_p: alimentoForm.value.proteina_bruta_p,
+      extrato_etereo_p: alimentoForm.value.extrato_etereo_p,
+      extrativo_nao_nitrogenado_p: alimentoForm.value.extrativo_nao_nitrogenado_p,
+      fibra_bruta_p: alimentoForm.value.fibra_bruta_p,
     })
 
     // Reset form
@@ -293,6 +376,12 @@ async function adicionarAlimento() {
   }
 }
 
+async function confirmRemoverAlimento(id: number, nome: string) {
+  if (window.confirm(`Deseja realmente remover "${nome}"?`)) {
+    await removerAlimento(id)
+  }
+}
+
 async function removerAlimento(id: number) {
   try {
     await alimentosAPI.delete(id)
@@ -303,7 +392,7 @@ async function removerAlimento(id: number) {
 }
 
 async function calcularDieta() {
-  if (!currentFormularioId.value) return
+  if (!currentFormularioId.value || alimentos.value.length === 0) return
 
   try {
     loading.value = true
@@ -316,6 +405,7 @@ async function calcularDieta() {
     })
 
     resultadoCalculo.value = response
+    step.value = 3
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erro ao calcular dieta'
   } finally {
@@ -323,18 +413,34 @@ async function calcularDieta() {
   }
 }
 
+function confirmNovoFormulario() {
+  if (window.confirm('Deseja começar um novo formulário? Todos os dados atuais serão perdidos.')) {
+    resetFormulario()
+  }
+}
+
 function resetFormulario() {
   currentFormularioId.value = null
   alimentos.value = []
   resultadoCalculo.value = null
+  selectedPatient.value = null
+  step.value = 1
   formularioForm.value = {
     paciente_id: '',
     data_avaliacao: new Date().toISOString().split('T')[0],
     peso_atual: null,
-    escore_condicao_corporal: null,
     observacoes: '',
   }
 }
+
+const alimentosTotalQtd = computed(() => {
+  return alimentos.value.reduce((total, a) => total + (a.quantidade_g_dia || 0), 0)
+})
+
+const pesoComparacao = computed(() => {
+  if (!selectedPatient.value || !formularioForm.value.peso_atual) return null
+  return formularioForm.value.peso_atual - selectedPatient.value.peso_ideal
+})
 </script>
 
 <style scoped>
@@ -383,6 +489,102 @@ function resetFormulario() {
   .page-content {
     max-width: 90%;
   }
+}
+
+/* Category 1: Layout/Organization - Progress Indicator */
+.progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.progress-step.active {
+  opacity: 1;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e2e8f0;
+  font-weight: bold;
+  color: #4a5568;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background: linear-gradient(135deg, #32cd32 0%, #006400 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(50, 205, 50, 0.3);
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.progress-line {
+  width: 40px;
+  height: 3px;
+  background: #e2e8f0;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.progress-line.active {
+  background: linear-gradient(90deg, #32cd32 0%, #006400 100%);
+  opacity: 1;
+}
+
+/* Patient Info Display */
+.patient-info {
+  background: #f0fdf4;
+  border-left: 4px solid #32cd32;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #006400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #2d3748;
 }
 
 .form-card,
@@ -474,12 +676,19 @@ function resetFormulario() {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
   background: #cbd5e0;
+  transform: translateY(-2px);
 }
 
+/* Category 3: Table Enhancements */
 .alimentos-list {
   margin-top: 24px;
   padding-top: 24px;
@@ -487,26 +696,36 @@ function resetFormulario() {
 }
 
 .alimentos-list h3 {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   color: #2d3748;
+  font-size: 16px;
+}
+
+.empty-state {
+  background: #f7fafc;
+  padding: 24px;
+  border-radius: 8px;
+  text-align: center;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  background: white;
 }
 
 table thead {
-  background: #f7fafc;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
 }
 
 table th {
   padding: 12px;
   text-align: left;
-  color: #4a5568;
+  color: #2d3748;
   font-size: 13px;
-  font-weight: 600;
-  border-bottom: 2px solid #e2e8f0;
+  font-weight: 700;
+  border-bottom: 2px solid #32cd32;
+  letter-spacing: 0.3px;
 }
 
 table td {
@@ -516,6 +735,23 @@ table td {
   font-size: 14px;
 }
 
+table tbody tr:hover {
+  background: #f7fafc;
+  transition: background 0.2s ease;
+}
+
+table tfoot {
+  background: #f7fafc;
+  border-top: 2px solid #e2e8f0;
+}
+
+table tfoot td {
+  padding: 12px;
+  font-size: 14px;
+  color: #2d3748;
+  border: none;
+}
+
 .btn-delete {
   padding: 6px 10px;
   border: none;
@@ -523,10 +759,12 @@ table td {
   cursor: pointer;
   font-size: 14px;
   background: #fed7d7;
+  transition: all 0.2s ease;
 }
 
 .btn-delete:hover {
   background: #fc8181;
+  transform: scale(1.05);
 }
 
 .calc-info {
@@ -545,47 +783,135 @@ table td {
   gap: 12px;
 }
 
+/* Category 4 & 5: Results Visualization & UX Improvements */
 .resultado-card {
   margin-top: 24px;
-  padding: 24px;
+  padding: 32px;
   background: linear-gradient(135deg, #e6f7e6 0%, #d4f1d4 100%);
   border-radius: 12px;
   border: 2px solid #32cd32;
+  box-shadow: 0 4px 16px rgba(50, 205, 50, 0.15);
+}
+
+.resultado-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .resultado-card h3 {
-  margin-top: 0;
+  margin: 0;
   color: #006400;
+  font-size: 20px;
+}
+
+.btn-close {
+  background: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
   font-size: 18px;
-  margin-bottom: 20px;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.btn-close:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* Patient Summary in Results */
+.patient-summary {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.summary-section h4 {
+  margin: 0 0 16px 0;
+  color: #2d3748;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #006400;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.summary-item {
+  padding: 12px;
+  background: #f7fafc;
+  border-radius: 6px;
+  border-left: 3px solid #32cd32;
+}
+
+.summary-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.above-ideal {
+  color: #ed8936 !important;
+}
+
+.below-ideal {
+  color: #38a169 !important;
 }
 
 .resultado-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
+  margin-bottom: 24px;
 }
 
 .resultado-item {
   background: white;
-  padding: 16px;
+  padding: 20px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .resultado-destaque {
   background: linear-gradient(135deg, #32cd32 0%, #006400 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(50, 205, 50, 0.3);
+  transform: scale(1.02);
 }
 
 .resultado-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   margin-bottom: 8px;
   color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .resultado-destaque .resultado-label {
@@ -593,13 +919,41 @@ table td {
 }
 
 .resultado-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   color: #2d3748;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
 }
 
 .resultado-destaque .resultado-value {
   color: white;
+}
+
+.resultado-unit {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.resultado-desc {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 6px;
+}
+
+.resultado-destaque .resultado-desc {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.resultado-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
 }
 
 .error {
@@ -625,34 +979,36 @@ table td {
     padding: 20px 15px;
   }
 
-  .workflow-steps {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .workflow-step {
-    width: 100%;
-  }
-
-  .form-grid {
+  .form-row {
     grid-template-columns: 1fr;
   }
 
-  .alimentos-table,
-  .suplementos-table {
+  .progress-container {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .progress-line {
+    display: none;
+  }
+
+  .patient-info,
+  .summary-grid,
+  .resultado-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultado-actions {
+    flex-direction: column;
+  }
+
+  table {
     font-size: 12px;
   }
 
-  .alimentos-table th,
-  .alimentos-table td,
-  .suplementos-table th,
-  .suplementos-table td {
+  table th,
+  table td {
     padding: 8px 6px;
-  }
-
-  .resultados-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -662,20 +1018,28 @@ table td {
     font-size: 12px;
   }
 
-  .workflow-step {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
   .form-card,
-  .list-card,
-  .results-card {
+  .calc-card,
+  .resultado-card {
     padding: 16px;
   }
 
-  .alimentos-table,
-  .suplementos-table {
-    font-size: 11px;
+  .resultado-card {
+    padding: 16px;
+  }
+
+  .resultado-value {
+    font-size: 20px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .step-label {
+    font-size: 10px;
   }
 }
 </style>
