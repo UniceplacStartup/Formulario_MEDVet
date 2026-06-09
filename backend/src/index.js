@@ -33,6 +33,8 @@ const consumedFoodRoutes = require('./routes/consumedFoodRoutes');
 const consumedSupplementRoutes = require('./routes/consumedSupplementRoutes');
 const formCalculationRoutes = require('./routes/formCalculationRoutes');
 
+const errorHandler = require('./middlewares/errorHandler');
+
 app.use('/api', clinicRoutes); // RF02: Clínica
 app.use('/api', UserRoutes);   // Auth
 app.use('/api', tutorRoutes);  // Tutores CRUD
@@ -41,6 +43,9 @@ app.use('/api', dietaryFormRoutes);
 app.use('/api', consumedFoodRoutes);
 app.use('/api', consumedSupplementRoutes);
 app.use('/api', formCalculationRoutes);
+
+// Middleware global de erro sempre por ultimo
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
