@@ -1,15 +1,16 @@
 const { Router } = require('express');
 const controller = require('../controllers/dietaryFormController');
 const { authenticateToken } = require('../middlewares/auth');
+const { checkRole } = require('../middlewares/checkRole');
 
 const router = Router();
 
 router.use(authenticateToken);
 
-router.post('/formularios', controller.createDietaryForm);
-router.get('/formularios', controller.listDietaryForms);
-router.get('/formularios/:id', controller.getDietaryFormById);
-router.put('/formularios/:id', controller.updateDietaryForm);
-router.delete('/formularios/:id', controller.deleteDietaryForm);
+router.post('/formularios', checkRole('admin', 'veterinario'), controller.createDietaryForm);
+router.get('/formularios', checkRole('admin', 'veterinario', 'atendente'), controller.listDietaryForms);
+router.get('/formularios/:id', checkRole('admin', 'veterinario', 'atendente'), controller.getDietaryFormById);
+router.put('/formularios/:id', checkRole('admin', 'veterinario'), controller.updateDietaryForm);
+router.delete('/formularios/:id', checkRole('admin', 'veterinario'), controller.deleteDietaryForm);
 
 module.exports = router;
