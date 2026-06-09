@@ -1,7 +1,10 @@
 const { Router } = require('express');
 const patientController = require('../controllers/patientController');
+const { authenticateToken } = require('../middlewares/auth');
 
 const router = Router();
+
+router.use(authenticateToken);
 
 router.post('/pacientes', patientController.createPatient);
 router.get('/pacientes', patientController.listPatients);

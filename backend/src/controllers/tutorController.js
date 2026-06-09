@@ -69,14 +69,14 @@ const updateTutor = async (req, res) => {
 const deleteTutor = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Verificar se tutor tem pacientes vinculados
     const { rows: pacientes } = await db.query('SELECT COUNT(*) as count FROM pacientes WHERE tutor_id = $1', [id]);
     if (parseInt(pacientes[0].count) > 0) {
       res.status(409).json({ error: 'Não é possível deletar um tutor que tem pacientes vinculados. Remova os pacientes primeiro.' });
       return;
     }
-    
+
     const result = await db.query('DELETE FROM tutores WHERE id = $1', [id]);
     if (result.rowCount === 0) {
       res.status(404).json();

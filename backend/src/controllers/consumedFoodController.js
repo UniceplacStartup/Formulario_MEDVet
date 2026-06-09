@@ -13,7 +13,7 @@ const createConsumedFood = async (req, res) => {
         proteina_bruta_p, extrato_etereo_p, extrativo_nao_nitrogenado_p, umidade_p, fibra_bruta_p, materia_mineral_p)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
       [Number(formulario_id), descricao_alimento?.trim(), tipo?.trim() || null, quantidade_g_dia, frequencia?.trim() || null,
-        proteina_bruta_p ?? null, extrato_etereo_p ?? null, extrativo_nao_nitrogenado_p ?? null, umidade_p ?? null, fibra_bruta_p ?? null, materia_mineral_p ?? null]
+      proteina_bruta_p ?? null, extrato_etereo_p ?? null, extrativo_nao_nitrogenado_p ?? null, umidade_p ?? null, fibra_bruta_p ?? null, materia_mineral_p ?? null]
     );
     return res.status(201).json(rows[0]);
   } catch (err) {
@@ -67,8 +67,8 @@ const updateConsumedFood = async (req, res) => {
         materia_mineral_p = COALESCE($10, materia_mineral_p)
        WHERE id=$11 RETURNING *`,
       [descricao_alimento?.trim() ?? null, tipo?.trim() ?? null, quantidade_g_dia ?? null, frequencia?.trim() ?? null,
-        proteina_bruta_p ?? null, extrato_etereo_p ?? null, extrativo_nao_nitrogenado_p ?? null, umidade_p ?? null, fibra_bruta_p ?? null, materia_mineral_p ?? null,
-        Number(id)]
+      proteina_bruta_p ?? null, extrato_etereo_p ?? null, extrativo_nao_nitrogenado_p ?? null, umidade_p ?? null, fibra_bruta_p ?? null, materia_mineral_p ?? null,
+      Number(id)]
     );
     if (!rows.length) return res.status(404).json();
     return res.status(200).json(rows[0]);

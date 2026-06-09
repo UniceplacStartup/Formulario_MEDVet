@@ -1,7 +1,10 @@
 const { Router } = require('express');
 const tutorController = require('../controllers/tutorController');
+const { authenticateToken } = require('../middlewares/auth');
 
 const router = Router();
+
+router.use(authenticateToken);
 
 router.post('/tutores', tutorController.createTutor);
 router.get('/tutores', tutorController.listTutores);

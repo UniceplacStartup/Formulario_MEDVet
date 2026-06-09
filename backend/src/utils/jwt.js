@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const secretKey = process.env.SECRETKEY;
 
 const createToken = (user) => {
-    return jwt.sign({ nome: user.nome, role: user.role }, secretKey, {expiresIn: '7 days'});
+    return jwt.sign({ id: user.id, clinicaId: user.clinic_id, role: user.role, email: user.email }, secretKey, {expiresIn: '7 days'});
 }
 
 const getSubjectFromToken = (token) => {
