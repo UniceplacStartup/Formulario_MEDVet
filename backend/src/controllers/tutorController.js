@@ -4,10 +4,11 @@ const { isUndefined } = require('../utils/validateInput');
 // Create
 const createTutor = async (req, res) => {
   try {
-    const { clinica_id, nome, contato } = req.body;
+    const clinica_id = req.user.clinicaId;
+    const { nome, contato } = req.body;
 
-    if (isUndefined(clinica_id) || isUndefined(nome)) {
-      res.status(400).json({ error: 'clinica_id e nome são obrigatórios' });
+    if (isUndefined(nome)) {
+      res.status(400).json({ error: 'nome é obrigatório' });
       return;
     }
 
@@ -24,7 +25,8 @@ const createTutor = async (req, res) => {
 // Read All
 const listTutores = async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT * FROM tutores ORDER BY id DESC');
+    const clinica_id = req.user.clinicaId;
+    const { rows } = await db.query('SELECT * FROM tutores WHERE clinica_id = $1 ORDER BY id DESC', [clinica_id]);
     res.status(200).json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Erro ao listar tutores', details: err.message });
@@ -35,7 +37,8 @@ const listTutores = async (req, res) => {
 const getTutorById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rows } = await db.query('SELECT * FROM tutores WHERE id = $1', [id]);
+    const clinica_id = req.user.clinicaId;
+    const { rows } = await db.query('SELECT * FROM tutores WHERE id = $1 AND clinica_id = $2', [id, clinica_id]);
     if (rows.length === 0) {
       res.status(404).json();
       return;
@@ -50,10 +53,11 @@ const getTutorById = async (req, res) => {
 const updateTutor = async (req, res) => {
   try {
     const { id } = req.params;
+    const clinica_id = req.user.clinicaId;
     const { nome, contato } = req.body;
     const { rows } = await db.query(
-      'UPDATE tutores SET nome = COALESCE($1, nome), contato = COALESCE($2, contato), updated_at = NOW() WHERE id = $3 RETURNING *',
-      [nome?.trim() ?? null, contato?.trim() ?? null, id]
+      'UPDATE tutores SET nome = COALESCE($1, nome), contato = COALESCE($2, contato), updated_at = NOW() WHERE id = $3 AND clinica_id = $4 RETURNING *',
+      [nome?.trim() ?? null, contato?.trim() ?? null, id, clinica_id]
     );
     if (rows.length === 0) {
       res.status(404).json();
@@ -69,6 +73,7 @@ const updateTutor = async (req, res) => {
 const deleteTutor = async (req, res) => {
   try {
     const { id } = req.params;
+    const clinica_id = req.user.clinicaId;
 
     // Verificar se tutor tem pacientes vinculados
     const { rows: pacientes } = await db.query('SELECT COUNT(*) as count FROM pacientes WHERE tutor_id = $1', [id]);
@@ -77,7 +82,7 @@ const deleteTutor = async (req, res) => {
       return;
     }
 
-    const result = await db.query('DELETE FROM tutores WHERE id = $1', [id]);
+    const result = await db.query('DELETE FROM tutores WHERE id = $1 AND clinica_id = $2', [id, clinica_id]);
     if (result.rowCount === 0) {
       res.status(404).json();
       return;

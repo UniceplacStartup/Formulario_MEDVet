@@ -119,9 +119,8 @@ export const clinicasAPI = {
 
 // ========== TUTORES ==========
 export const tutoresAPI = {
-  async list(clinicaId?: number) {
-    const query = clinicaId ? `?clinica_id=${clinicaId}` : ''
-    return request<any[]>(`/tutores${query}`, { requiresAuth: true })
+  async list() {
+    return request<any[]>('/tutores', { requiresAuth: true })
   },
 
   async getById(id: number) {

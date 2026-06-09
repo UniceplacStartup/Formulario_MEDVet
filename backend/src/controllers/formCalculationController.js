@@ -27,6 +27,13 @@ const upsertFormCalculation = async (req, res) => {
     let { em_total_kcal_dia, nem_calculada_kcal_dia, quantidade_racao_recomendada_g_dia, auto } = req.body;
     if (!formulario_id) return res.status(400).json({ error: 'formulario_id é obrigatório' });
 
+    // Verificar se o formulário pertence à clínica
+    const { rows: formRows } = await db.query(
+      `SELECT f.id FROM formularios_dieteticos f JOIN pacientes p ON f.paciente_id = p.id WHERE f.id = $1 AND p.clinica_id = $2`,
+      [Number(formulario_id), req.user.clinicaId]
+    );
+    if (!formRows.length) return res.status(403).json({ error: 'Acesso negado: formulário não pertence à sua clínica' });
+
     // Se 'auto' for true, ou se não vierem valores, calcula automaticamente
     if (auto === true || (em_total_kcal_dia === undefined && nem_calculada_kcal_dia === undefined && quantidade_racao_recomendada_g_dia === undefined)) {
       const calculated = await computeFormCalculation(Number(formulario_id));
@@ -65,11 +72,16 @@ const upsertFormCalculation = async (req, res) => {
 const listFormCalculations = async (req, res) => {
   try {
     const { formulario_id } = req.query;
-    let sql = 'SELECT * FROM calculos_formulario';
-    const params = [];
+    let sql = `
+      SELECT c.* FROM calculos_formulario c
+      JOIN formularios_dieteticos f ON c.formulario_id = f.id
+      JOIN pacientes p ON f.paciente_id = p.id
+      WHERE p.clinica_id = $1
+    `;
+    const params = [req.user.clinicaId];
     if (formulario_id) {
       params.push(Number(formulario_id));
-      sql += ` WHERE formulario_id = $${params.length}`;
+      sql += ` AND c.formulario_id = $${params.length}`;
     }
     const { rows } = await db.query(sql, params);
     return res.status(200).json(rows.map(normalizeCalcRow));
@@ -81,7 +93,12 @@ const listFormCalculations = async (req, res) => {
 const getFormCalculationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rows } = await db.query('SELECT * FROM calculos_formulario WHERE id=$1', [Number(id)]);
+    const { rows } = await db.query(`
+      SELECT c.* FROM calculos_formulario c
+      JOIN formularios_dieteticos f ON c.formulario_id = f.id
+      JOIN pacientes p ON f.paciente_id = p.id
+      WHERE c.id=$1 AND p.clinica_id=$2
+    `, [Number(id), req.user.clinicaId]);
     if (!rows.length) return res.status(404).json();
     return res.status(200).json(normalizeCalcRow(rows[0]));
   } catch (err) {
@@ -92,7 +109,12 @@ const getFormCalculationById = async (req, res) => {
 const deleteFormCalculation = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await db.query('DELETE FROM calculos_formulario WHERE id=$1', [Number(id)]);
+    const result = await db.query(`
+      DELETE FROM calculos_formulario 
+      WHERE id=$1 AND formulario_id IN (
+         SELECT f.id FROM formularios_dieteticos f JOIN pacientes p ON f.paciente_id = p.id WHERE p.clinica_id = $2
+      )
+    `, [Number(id), req.user.clinicaId]);
     if (result.rowCount === 0) return res.status(404).json();
     return res.status(204).json();
   } catch (err) {
@@ -105,6 +127,14 @@ const computeOnly = async (req, res) => {
   try {
     const { formulario_id } = req.query;
     if (!formulario_id) return res.status(400).json({ error: 'formulario_id é obrigatório' });
+
+    // Verificar se o formulário pertence à clínica
+    const { rows: formRows } = await db.query(
+      `SELECT f.id FROM formularios_dieteticos f JOIN pacientes p ON f.paciente_id = p.id WHERE f.id = $1 AND p.clinica_id = $2`,
+      [Number(formulario_id), req.user.clinicaId]
+    );
+    if (!formRows.length) return res.status(403).json({ error: 'Acesso negado: formulário não pertence à sua clínica' });
+
     const result = await computeFormCalculation(Number(formulario_id));
     return res.status(200).json({ formulario_id: Number(formulario_id), ...result });
   } catch (err) {

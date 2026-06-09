@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { tutoresAPI, clinicasAPI } from '@/services/api'
+import { tutoresAPI } from '@/services/api'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -82,7 +82,6 @@ const loading = ref(false)
 const loadingList = ref(false)
 const error = ref<string | null>(null)
 const editingId = ref<number | null>(null)
-const clinicaId = ref<number | null>(null)
 
 const form = ref({
   nome: '',
@@ -91,11 +90,6 @@ const form = ref({
 })
 
 onMounted(async () => {
-  // Buscar primeira clínica disponível (simplificação para demo)
-  const clinicas = await clinicasAPI.list()
-  if (clinicas.length > 0) {
-    clinicaId.value = clinicas[0].id
-  }
   await loadTutores()
 })
 
@@ -103,7 +97,7 @@ async function loadTutores() {
   try {
     loadingList.value = true
     error.value = null
-    tutores.value = await tutoresAPI.list(clinicaId.value || undefined)
+    tutores.value = await tutoresAPI.list()
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erro ao carregar tutores'
   } finally {
@@ -117,7 +111,6 @@ async function handleSubmit() {
     error.value = null
 
     const data = {
-      clinica_id: clinicaId.value,
       nome: form.value.nome,
       contato: buildContato(form.value.telefone, form.value.email),
     }
