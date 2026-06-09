@@ -45,11 +45,7 @@ const listPatients = async (req, res) => {
 // Read one
 const getPatientById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const clinica_id = req.user.clinicaId;
-    const { rows } = await db.query('SELECT * FROM pacientes WHERE id = $1 AND clinica_id = $2', [Number(id), Number(clinica_id)]);
-    if (!rows.length) return res.status(404).json();
-    return res.status(200).json(rows[0]);
+    return res.status(200).json(req.paciente);
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao buscar paciente', details: err.message });
   }
@@ -58,8 +54,7 @@ const getPatientById = async (req, res) => {
 // Update (partial)
 const updatePatient = async (req, res) => {
   try {
-    const { id } = req.params;
-    const clinica_id = req.user.clinicaId;
+    const { id } = req.paciente;
     const { nome, especie, raca, data_nascimento, peso_ideal } = req.body;
     const { rows } = await db.query(
       `UPDATE pacientes SET 
@@ -69,8 +64,8 @@ const updatePatient = async (req, res) => {
         data_nascimento = COALESCE($4, data_nascimento),
         peso_ideal = COALESCE($5, peso_ideal),
         updated_at = NOW()
-       WHERE id = $6 AND clinica_id = $7 RETURNING *`,
-      [nome?.trim() ?? null, especie?.trim() ?? null, raca?.trim() ?? null, data_nascimento ?? null, peso_ideal ?? null, Number(id), Number(clinica_id)]
+       WHERE id = $6 RETURNING *`,
+      [nome?.trim() ?? null, especie?.trim() ?? null, raca?.trim() ?? null, data_nascimento ?? null, peso_ideal ?? null, Number(id)]
     );
     if (!rows.length) return res.status(404).json();
     return res.status(200).json(rows[0]);
@@ -82,9 +77,8 @@ const updatePatient = async (req, res) => {
 // Delete
 const deletePatient = async (req, res) => {
   try {
-    const { id } = req.params;
-    const clinica_id = req.user.clinicaId;
-    const result = await db.query('DELETE FROM pacientes WHERE id = $1 AND clinica_id = $2', [Number(id), Number(clinica_id)]);
+    const { id } = req.paciente;
+    const result = await db.query('DELETE FROM pacientes WHERE id = $1', [Number(id)]);
     if (result.rowCount === 0) return res.status(404).json();
     return res.status(204).json();
   } catch (err) {
