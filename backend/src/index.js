@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +25,17 @@ app.use(
     }
   })
 );
+
+app.use(helmet());
+
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(generalLimiter); 
 
 // Middleware para o Express entender JSON
 app.use(express.json());
