@@ -4,10 +4,11 @@ const { isUndefined } = require('../utils/validateInput');
 // Create
 const createPatient = async (req, res) => {
   try {
-    const { tutor_id, clinica_id, nome, especie, raca, data_nascimento, peso_ideal } = req.body;
+    const clinica_id = req.user.clinicaId;
+    const { tutor_id, nome, especie, raca, data_nascimento, peso_ideal } = req.body;
 
-    if (isUndefined(tutor_id) || isUndefined(clinica_id) || isUndefined(nome) || isUndefined(especie)) {
-      return res.status(400).json({ error: 'tutor_id, clinica_id, nome e especie são obrigatórios' });
+    if (isUndefined(tutor_id) || isUndefined(nome) || isUndefined(especie)) {
+      return res.status(400).json({ error: 'tutor_id, nome e especie são obrigatórios' });
     }
 
     const { rows } = await db.query(
@@ -21,19 +22,17 @@ const createPatient = async (req, res) => {
   }
 };
 
-// Read all (optional filter by clinica_id or tutor_id)
+// Read all (optional filter by tutor_id)
 const listPatients = async (req, res) => {
   try {
-    const { clinica_id, tutor_id } = req.query;
-    let sql = 'SELECT * FROM pacientes';
-    const params = [];
-    if (clinica_id) {
-      params.push(Number(clinica_id));
-      sql += ` WHERE clinica_id = $${params.length}`;
-    }
+    const clinica_id = req.user.clinicaId;
+    const { tutor_id } = req.query;
+    let sql = 'SELECT * FROM pacientes WHERE clinica_id = $1';
+    const params = [Number(clinica_id)];
+    
     if (tutor_id) {
       params.push(Number(tutor_id));
-      sql += params.length === 1 ? ` WHERE tutor_id = $${params.length}` : ` AND tutor_id = $${params.length}`;
+      sql += ` AND tutor_id = $2`;
     }
     sql += ' ORDER BY id DESC';
     const { rows } = await db.query(sql, params);
@@ -46,10 +45,7 @@ const listPatients = async (req, res) => {
 // Read one
 const getPatientById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { rows } = await db.query('SELECT * FROM pacientes WHERE id = $1', [Number(id)]);
-    if (!rows.length) return res.status(404).json();
-    return res.status(200).json(rows[0]);
+    return res.status(200).json(req.paciente);
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao buscar paciente', details: err.message });
   }
@@ -58,7 +54,7 @@ const getPatientById = async (req, res) => {
 // Update (partial)
 const updatePatient = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.paciente;
     const { nome, especie, raca, data_nascimento, peso_ideal } = req.body;
     const { rows } = await db.query(
       `UPDATE pacientes SET 
@@ -81,7 +77,7 @@ const updatePatient = async (req, res) => {
 // Delete
 const deletePatient = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.paciente;
     const result = await db.query('DELETE FROM pacientes WHERE id = $1', [Number(id)]);
     if (result.rowCount === 0) return res.status(404).json();
     return res.status(204).json();

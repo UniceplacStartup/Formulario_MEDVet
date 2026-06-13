@@ -7,6 +7,11 @@ const createDietaryForm = async (req, res) => {
     if (isUndefined(paciente_id) || isUndefined(peso_atual)) {
       return res.status(400).json({ error: 'paciente_id e peso_atual são obrigatórios' });
     }
+    
+    // Verificar se o paciente pertence à clínica do usuário
+    const { rows: pacienteRows } = await db.query('SELECT id FROM pacientes WHERE id = $1 AND clinica_id = $2', [Number(paciente_id), req.user.clinicaId]);
+    if (!pacienteRows.length) return res.status(403).json({ error: 'Acesso negado: paciente não pertence à sua clínica' });
+
     const { rows } = await db.query(
       `INSERT INTO formularios_dieteticos (paciente_id, usuario_id, peso_atual, condicoes_clinicas, observacoes_vet)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -21,13 +26,18 @@ const createDietaryForm = async (req, res) => {
 const listDietaryForms = async (req, res) => {
   try {
     const { paciente_id } = req.query;
-    let sql = 'SELECT * FROM formularios_dieteticos';
-    const params = [];
+    let sql = `
+      SELECT f.* 
+      FROM formularios_dieteticos f
+      JOIN pacientes p ON f.paciente_id = p.id
+      WHERE p.clinica_id = $1
+    `;
+    const params = [req.user.clinicaId];
     if (paciente_id) {
       params.push(Number(paciente_id));
-      sql += ` WHERE paciente_id = $${params.length}`;
+      sql += ` AND f.paciente_id = $${params.length}`;
     }
-    sql += ' ORDER BY id DESC';
+    sql += ' ORDER BY f.id DESC';
     const { rows } = await db.query(sql, params);
     return res.status(200).json(rows);
   } catch (err) {
@@ -37,10 +47,7 @@ const listDietaryForms = async (req, res) => {
 
 const getDietaryFormById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { rows } = await db.query('SELECT * FROM formularios_dieteticos WHERE id=$1', [Number(id)]);
-    if (!rows.length) return res.status(404).json();
-    return res.status(200).json(rows[0]);
+    return res.status(200).json(req.formulario);
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao buscar formulário', details: err.message });
   }
@@ -48,7 +55,7 @@ const getDietaryFormById = async (req, res) => {
 
 const updateDietaryForm = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.formulario;
     const { peso_atual, condicoes_clinicas, observacoes_vet } = req.body;
     const { rows } = await db.query(
       `UPDATE formularios_dieteticos SET 
@@ -68,8 +75,11 @@ const updateDietaryForm = async (req, res) => {
 
 const deleteDietaryForm = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await db.query('DELETE FROM formularios_dieteticos WHERE id=$1', [Number(id)]);
+    const { id } = req.formulario;
+    const result = await db.query(`
+      DELETE FROM formularios_dieteticos 
+      WHERE id=$1
+    `, [Number(id)]);
     if (result.rowCount === 0) return res.status(404).json();
     return res.status(204).json();
   } catch (err) {
