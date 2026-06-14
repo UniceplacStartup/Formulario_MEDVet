@@ -6,7 +6,21 @@ const { isUndefined, invalidPassword, invalidEmail } = require('../utils/validat
 
 const register = async (req, res) => {
     try {
-        const { clinic_id, nome, email, password, role } = req.body;
+        const { nome, email, password, role } = req.body;
+
+        const clinic_id = req.user.clinicaId;
+
+        const rolesPermitidas = [
+            'admin',
+            'veterinario',
+            'atendente'
+        ];
+
+        if (!role || !rolesPermitidas.includes(role.trim())){
+            return res.status(400).json({
+                error: 'Role inválida'
+            });
+        }
 
         if (isUndefined(clinic_id) || isUndefined(nome) || invalidEmail(email) || isUndefined(role) || invalidPassword(password)) {
             res.status(400).json({ error: 'Dados inválidos' });
