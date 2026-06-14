@@ -1,0 +1,1018 @@
+{
+  "info": {
+    "name": "MedVet API - Versão Demo",
+    "description": "Coleção completa para testar os endpoints do sistema MedVet, incluindo CRUD de todas as entidades e cálculos nutricionais automáticos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "medvet-demo"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clinica_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tutor_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paciente_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "formulario_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alimento_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "suplemento_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "calculo_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": [""]
+        },
+        "description": "Verifica se a API está rodando."
+      },
+      "response": []
+    },
+    {
+      "name": "1. Clínicas",
+      "item": [
+        {
+          "name": "Criar Clínica",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.clinica && response.clinica.id) {",
+                  "    pm.collectionVariables.set('clinica_id', response.clinica.id);",
+                  "    pm.environment.set('clinica_id', response.clinica.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cnpj\": \"12345678000199\",\n  \"razao_social\": \"Clínica Veterinária Exemplo LTDA\",\n  \"nome_fantasia\": \"VetCare\",\n  \"telefone\": \"11987654321\",\n  \"email\": \"contato@vetcare.com.br\",\n  \"crmv\": \"SP-12345\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/clinicas",
+              "host": ["{{base_url}}"],
+              "path": ["clinicas"]
+            },
+            "description": "Cria uma nova clínica e armazena o ID retornado."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Clínicas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/clinicas",
+              "host": ["{{base_url}}"],
+              "path": ["clinicas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Clínica por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/clinicas/{{clinica_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["clinicas", "{{clinica_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Clínica",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"11987654322\",\n  \"email\": \"novo@vetcare.com.br\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/clinicas/{{clinica_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["clinicas", "{{clinica_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Clínica",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/clinicas/{{clinica_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["clinicas", "{{clinica_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Usuários",
+      "item": [
+        {
+          "name": "Registrar Usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "    pm.collectionVariables.set('jwt_token', response.token);",
+                  "    pm.environment.set('jwt_token', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinic_id\": \"{{clinica_id}}\",\n  \"nome\": \"Dr. João Silva\",\n  \"email\": \"joao.silva@vetcare.com.br\",\n  \"password\": \"senha123\",\n  \"role\": \"veterinario\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/register",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "register"]
+            },
+            "description": "Cria um novo usuário e armazena o token JWT retornado."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "    pm.collectionVariables.set('jwt_token', response.token);",
+                  "    pm.environment.set('jwt_token', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao.silva@vetcare.com.br\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/login",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "login"]
+            },
+            "description": "Faz login e obtém um novo token JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Tutores",
+      "item": [
+        {
+          "name": "Criar Tutor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('tutor_id', response.id);",
+                  "    pm.environment.set('tutor_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinica_id\": \"{{clinica_id}}\",\n  \"nome\": \"Maria Santos\",\n  \"cpf\": \"12345678901\",\n  \"telefone\": \"11987654321\",\n  \"email\": \"maria.santos@email.com\",\n  \"endereco\": \"Rua das Flores, 123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tutores",
+              "host": ["{{base_url}}"],
+              "path": ["tutores"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Tutores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tutores",
+              "host": ["{{base_url}}"],
+              "path": ["tutores"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Tutor por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tutores/{{tutor_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tutores", "{{tutor_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Tutor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"11987654399\",\n  \"email\": \"maria.santos.novo@email.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tutores/{{tutor_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tutores", "{{tutor_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Tutor",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tutores/{{tutor_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tutores", "{{tutor_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Pacientes",
+      "item": [
+        {
+          "name": "Criar Paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('paciente_id', response.id);",
+                  "    pm.environment.set('paciente_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tutor_id\": \"{{tutor_id}}\",\n  \"nome\": \"Rex\",\n  \"especie\": \"cao\",\n  \"raca\": \"Labrador\",\n  \"sexo\": \"macho\",\n  \"data_nascimento\": \"2020-05-15\",\n  \"peso\": 28.5,\n  \"condicao_corporal\": \"ideal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pacientes",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Pacientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pacientes",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Pacientes por Tutor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pacientes?tutor_id={{tutor_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes"],
+              "query": [
+                {
+                  "key": "tutor_id",
+                  "value": "{{tutor_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Paciente por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pacientes/{{paciente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "{{paciente_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Paciente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"peso\": 30.0,\n  \"condicao_corporal\": \"sobrepeso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pacientes/{{paciente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "{{paciente_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Paciente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pacientes/{{paciente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["pacientes", "{{paciente_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Formulários Dietéticos",
+      "item": [
+        {
+          "name": "Criar Formulário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('formulario_id', response.id);",
+                  "    pm.environment.set('formulario_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paciente_id\": \"{{paciente_id}}\",\n  \"data_avaliacao\": \"2025-11-12\",\n  \"peso_atual\": 28.5,\n  \"escore_condicao_corporal\": 5,\n  \"observacoes\": \"Paciente saudável, dieta de manutenção\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/formularios",
+              "host": ["{{base_url}}"],
+              "path": ["formularios"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Formulários",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/formularios",
+              "host": ["{{base_url}}"],
+              "path": ["formularios"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Formulários por Paciente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/formularios?paciente_id={{paciente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["formularios"],
+              "query": [
+                {
+                  "key": "paciente_id",
+                  "value": "{{paciente_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Formulário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/formularios/{{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["formularios", "{{formulario_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Formulário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"peso_atual\": 29.0,\n  \"observacoes\": \"Paciente ganhou peso, ajustar dieta\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/formularios/{{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["formularios", "{{formulario_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Formulário",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/formularios/{{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["formularios", "{{formulario_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Alimentos Consumidos",
+      "item": [
+        {
+          "name": "Adicionar Alimento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('alimento_id', response.id);",
+                  "    pm.environment.set('alimento_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formulario_id\": \"{{formulario_id}}\",\n  \"nome_alimento\": \"Ração Premium para Cães Adultos\",\n  \"quantidade_g_dia\": 250,\n  \"proteina_bruta_p\": 26.0,\n  \"extrato_etereo_p\": 14.0,\n  \"extrativo_nao_nitrogenado_p\": 45.0,\n  \"fibra_bruta_p\": 3.5,\n  \"materia_mineral_p\": 7.5,\n  \"umidade_p\": 10.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/alimentos",
+              "host": ["{{base_url}}"],
+              "path": ["alimentos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Alimentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/alimentos",
+              "host": ["{{base_url}}"],
+              "path": ["alimentos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Alimentos por Formulário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/alimentos?formulario_id={{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["alimentos"],
+              "query": [
+                {
+                  "key": "formulario_id",
+                  "value": "{{formulario_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Alimento por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/alimentos/{{alimento_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["alimentos", "{{alimento_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Alimento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade_g_dia\": 280\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/alimentos/{{alimento_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["alimentos", "{{alimento_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Alimento",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/alimentos/{{alimento_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["alimentos", "{{alimento_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Suplementos Consumidos",
+      "item": [
+        {
+          "name": "Adicionar Suplemento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('suplemento_id', response.id);",
+                  "    pm.environment.set('suplemento_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formulario_id\": \"{{formulario_id}}\",\n  \"nome_suplemento\": \"Ômega 3 para Cães\",\n  \"quantidade_g_dia\": 2.5,\n  \"observacoes\": \"Administrar junto com a refeição principal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/suplementos",
+              "host": ["{{base_url}}"],
+              "path": ["suplementos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Suplementos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suplementos",
+              "host": ["{{base_url}}"],
+              "path": ["suplementos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Suplementos por Formulário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suplementos?formulario_id={{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["suplementos"],
+              "query": [
+                {
+                  "key": "formulario_id",
+                  "value": "{{formulario_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Suplemento por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suplementos/{{suplemento_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["suplementos", "{{suplemento_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Suplemento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade_g_dia\": 3.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/suplementos/{{suplemento_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["suplementos", "{{suplemento_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Suplemento",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suplementos/{{suplemento_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["suplementos", "{{suplemento_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Cálculos Nutricionais",
+      "item": [
+        {
+          "name": "Calcular (Preview - Sem Salvar)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calculos/compute?formulario_id={{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["calculos", "compute"],
+              "query": [
+                {
+                  "key": "formulario_id",
+                  "value": "{{formulario_id}}"
+                }
+              ]
+            },
+            "description": "Calcula EM, NEM e quantidade recomendada sem persistir no banco. Útil para pré-visualização."
+          },
+          "response": []
+        },
+        {
+          "name": "Salvar Cálculo (Auto)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('calculo_id', response.id);",
+                  "    pm.environment.set('calculo_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formulario_id\": \"{{formulario_id}}\",\n  \"auto\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calculos",
+              "host": ["{{base_url}}"],
+              "path": ["calculos"]
+            },
+            "description": "Calcula automaticamente e salva (upsert) os valores de EM, NEM e quantidade recomendada."
+          },
+          "response": []
+        },
+        {
+          "name": "Salvar Cálculo (Manual)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set('calculo_id', response.id);",
+                  "    pm.environment.set('calculo_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formulario_id\": \"{{formulario_id}}\",\n  \"em_total_kcal_dia\": 950.0,\n  \"nem_calculada_kcal_dia\": 1100.0,\n  \"quantidade_racao_recomendada_g_dia\": 289.47\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calculos",
+              "host": ["{{base_url}}"],
+              "path": ["calculos"]
+            },
+            "description": "Salva (upsert) valores fornecidos manualmente."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Cálculos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calculos",
+              "host": ["{{base_url}}"],
+              "path": ["calculos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Cálculos por Formulário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calculos?formulario_id={{formulario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["calculos"],
+              "query": [
+                {
+                  "key": "formulario_id",
+                  "value": "{{formulario_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Cálculo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calculos/{{calculo_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["calculos", "{{calculo_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Cálculo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calculos/{{calculo_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["calculos", "{{calculo_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -19,27 +19,31 @@ class User {
     }
 
     async save() {
-        await db.query('INSERT INTO usuarios(clinica_id, nome, email, password_hash, role) VALUES($1, $2, $3, $4, $5)', [this.clinic_id, this.nome, this.email, this.password, this.role]); 
+        const result = await db.query(
+            'INSERT INTO usuarios(clinica_id, nome, email, password_hash, role) VALUES($1, $2, $3, $4, $5) RETURNING *',
+            [this.clinic_id, this.nome, this.email, this.password, this.role]
+        );
+        const row = result.rows[0];
+        this.id = row.id;
+        this.created_at = row.created_at;
+        this.updated_at = row.updated_at;
+        return this;
     }
 
     async findByEmail(email) {
-    const result = await db.query('SELECT * FROM usuarios WHERE email=$1', [email]);
-    const user = result.rows.pop();
-    
-    if (!user) {
-        return false; // Retorna false se o usuário não for encontrado
+        const result = await db.query('SELECT * FROM usuarios WHERE email=$1', [email]);
+        const user = result.rows[0];
+        if (!user) return false;
+        this.id = user.id;
+        this.clinic_id = user.clinica_id;
+        this.nome = user.nome;
+        this.email = user.email;
+        this.password = user.password_hash;
+        this.role = user.role;
+        this.created_at = user.created_at;
+        this.updated_at = user.updated_at;
+        return true;
     }
-
-    this.id = user.id;
-    this.clinic_id = user.clinica_id;
-    this.nome = user.nome;
-    this.email = user.email;
-    this.password = user.password_hash;
-    this.role = user.role;
-    this.created_at = user.created_at;
-    this.updated_at = user.updated_at;
-    return true; 
-}
 }
 
 module.exports = { User };

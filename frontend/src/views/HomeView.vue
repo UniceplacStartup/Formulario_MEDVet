@@ -1,6 +1,6 @@
 // frontend/src/views/HomeView.vue
 
-<script setup>
+<script setup lang="ts">
 import MedVetLogin from '@/components/MedVetLogin.vue'
 </script>
 

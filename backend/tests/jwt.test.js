@@ -11,5 +11,6 @@ test('get subject from token', () => {
     const user = new User.User('1', '2', '3', '4', '5');
     const token = createToken(user);
     const subject = getSubjectFromToken(token); 
-    expect(subject.nome).toBe('1');
+    expect(subject.nome).toBe('2');
+    expect(subject.role).toBe('4');
 });
