@@ -56,9 +56,9 @@ const login = async (req, res) => {
         }
 
         const user = new User.User();
-        await user.findByEmail(email)
+        const found = await user.findByEmail(email);
 
-        if (!await comparePassword(password, user.password)) {
+        if (!found || !await comparePassword(password, user.password)) {
             res.status(401).json({ error: 'Credenciais inválidas' });
             return
         }

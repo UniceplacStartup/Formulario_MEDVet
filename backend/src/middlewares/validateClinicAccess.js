@@ -18,7 +18,7 @@ const validatePatientAccess = async (req, res, next) => {
         const paciente = rows[0];
 
         // Se o recurso pertencer a outra clínica, retorna 404
-        if (paciente.clinica_id !== clinica_id) {
+        if (Number(paciente.clinica_id) !== Number(clinica_id)) {
             return res.status(404).json({ error: 'Paciente não encontrado.' });
         }
 
@@ -53,7 +53,7 @@ const validateFormAccess = async (req, res, next) => {
         const formulario = rows[0];
 
         // Se o recurso pertencer a outra clínica, retorna 404
-        if (formulario.clinica_id !== clinica_id) {
+        if (Number(formulario.clinica_id) !== Number(clinica_id)) {
             return res.status(404).json({ error: 'Formulário não encontrado.' });
         }
 

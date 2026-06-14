@@ -32,7 +32,8 @@ class User {
 
     async findByEmail(email) {
         const result = await db.query('SELECT * FROM usuarios WHERE email=$1', [email]);
-        const user = result.rows.pop();
+        const user = result.rows[0];
+        if (!user) return false;
         this.id = user.id;
         this.clinic_id = user.clinica_id;
         this.nome = user.nome;
@@ -41,6 +42,7 @@ class User {
         this.role = user.role;
         this.created_at = user.created_at;
         this.updated_at = user.updated_at;
+        return true;
     }
 }
 
