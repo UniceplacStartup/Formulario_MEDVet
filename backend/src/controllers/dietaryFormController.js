@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { isUndefined } = require('../utils/validateInput');
+const NutritionalCalculator = require('../services/NutritionalCalculator');
 
 const createDietaryForm = async (req, res) => {
   try {
@@ -8,16 +9,35 @@ const createDietaryForm = async (req, res) => {
       return res.status(400).json({ error: 'paciente_id e peso_atual são obrigatórios' });
     }
     
-    // Verificar se o paciente pertence à clínica do usuário
-    const { rows: pacienteRows } = await db.query('SELECT id FROM pacientes WHERE id = $1 AND clinica_id = $2', [Number(paciente_id), req.user.clinicaId]);
+    // Verificar se o paciente pertence à clínica do usuário e buscar dados completos
+    const { rows: pacienteRows } = await db.query('SELECT * FROM pacientes WHERE id = $1 AND clinica_id = $2', [Number(paciente_id), req.user.clinicaId]);
     if (!pacienteRows.length) return res.status(403).json({ error: 'Acesso negado: paciente não pertence à sua clínica' });
+
+    const paciente = pacienteRows[0];
 
     const { rows } = await db.query(
       `INSERT INTO formularios_dieteticos (paciente_id, usuario_id, peso_atual, condicoes_clinicas, observacoes_vet)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [Number(paciente_id), usuario_id ? Number(usuario_id) : null, peso_atual, condicoes_clinicas || null, observacoes_vet || null]
     );
-    return res.status(201).json(rows[0]);
+    
+    const formulario = rows[0];
+
+    try {
+      // Dispara o cálculo nutricional passando array vazio de alimentos (novo formulário)
+      const calculo = NutritionalCalculator.calcular(paciente, formulario, []);
+      
+      // Persiste os resultados na tabela de cálculos com conversão explícita de ID
+      await db.query(`
+        INSERT INTO calculos_formulario (formulario_id, em_total_kcal_dia, nem_calculada_kcal_dia, quantidade_racao_recomendada_g_dia)
+        VALUES ($1, $2, $3, $4)
+      `, [Number(formulario.id), calculo.emTotal, calculo.nem, calculo.quantidadeRecomendada]);
+    } catch (errCalc) {
+      // Falhas no cálculo não quebram o fluxo principal
+      console.error('Erro no cálculo nutricional (create):', errCalc.message);
+    }
+
+    return res.status(201).json(formulario);
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao criar formulário', details: err.message });
   }
@@ -67,7 +87,35 @@ const updateDietaryForm = async (req, res) => {
       [peso_atual ?? null, condicoes_clinicas ?? null, observacoes_vet ?? null, Number(id)]
     );
     if (!rows.length) return res.status(404).json();
-    return res.status(200).json(rows[0]);
+    
+    const formularioAtualizado = rows[0];
+
+    try {
+      // Busca dados completos do paciente
+      const { rows: pacRows } = await db.query('SELECT * FROM pacientes WHERE id = $1', [Number(formularioAtualizado.paciente_id)]);
+      const paciente = pacRows[0];
+
+      // Busca os alimentos associados ao formulário
+      const { rows: alimentos } = await db.query('SELECT * FROM alimentos_consumidos WHERE formulario_id = $1', [Number(id)]);
+
+      // Dispara o cálculo nutricional com os dados atualizados
+      const calculo = NutritionalCalculator.calcular(paciente, formularioAtualizado, alimentos);
+
+      // Upsert: atualiza se já existir ou insere um novo garantindo a relação 1:1
+      await db.query(`
+        INSERT INTO calculos_formulario (formulario_id, em_total_kcal_dia, nem_calculada_kcal_dia, quantidade_racao_recomendada_g_dia)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (formulario_id) DO UPDATE SET
+          em_total_kcal_dia = EXCLUDED.em_total_kcal_dia,
+          nem_calculada_kcal_dia = EXCLUDED.nem_calculada_kcal_dia,
+          quantidade_racao_recomendada_g_dia = EXCLUDED.quantidade_racao_recomendada_g_dia
+      `, [Number(id), calculo.emTotal, calculo.nem, calculo.quantidadeRecomendada]);
+    } catch (errCalc) {
+      // Falhas no cálculo não quebram o fluxo principal
+      console.error('Erro no cálculo nutricional (update):', errCalc.message);
+    }
+
+    return res.status(200).json(formularioAtualizado);
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao atualizar formulário', details: err.message });
   }
