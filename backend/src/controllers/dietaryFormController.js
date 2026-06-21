@@ -1,6 +1,8 @@
 const db = require('../config/database');
 const { isUndefined } = require('../utils/validateInput');
 const NutritionalCalculator = require('../services/NutritionalCalculator');
+const PDFDocument = require('pdfkit');
+
 
 const createDietaryForm = async (req, res) => {
   try {
@@ -135,10 +137,74 @@ const deleteDietaryForm = async (req, res) => {
   }
 };
 
+const generatePdfReport = async (req, res) => {
+  try {
+    // Proteção de tipo: conversão explícita para BIGINT (Number)
+    const formId = Number(req.params.id);
+    
+    // Verifica se formulário existe e valida o ID com o req.formulario
+    if (!req.formulario || Number(req.formulario.id) !== formId) {
+      return res.status(404).json({ error: 'Formulário não encontrado ou sem permissão' });
+    }
+
+    const doc = new PDFDocument();
+
+    // Define cabeçalhos para forçar o download automático do arquivo em PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="relatorio_formulario_${formId}.pdf"`);
+
+    // Utiliza streams para enviar o PDF otimizando memória
+    doc.pipe(res);
+
+    // Conteúdo do relatório
+    doc.fontSize(20).text('Relatório Dietético', { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(14).text(`Formulário ID: ${formId}`);
+    doc.text(`Paciente ID: ${req.formulario.paciente_id}`);
+    doc.text(`Peso Atual: ${req.formulario.peso_atual} kg`);
+    
+    if (req.formulario.condicoes_clinicas) {
+      doc.moveDown();
+      doc.text('Condições Clínicas:');
+      doc.fontSize(12).text(req.formulario.condicoes_clinicas);
+    }
+
+    if (req.formulario.observacoes_vet) {
+      doc.moveDown();
+      doc.fontSize(14).text('Observações Veterinárias:');
+      doc.fontSize(12).text(req.formulario.observacoes_vet);
+    }
+
+    // Busca resultados do cálculo na tabela
+    const { rows: calcRows } = await db.query('SELECT * FROM calculos_formulario WHERE formulario_id = $1', [formId]);
+    
+    if (calcRows.length > 0) {
+      const calculo = calcRows[0];
+      doc.moveDown();
+      doc.fontSize(14).text('Cálculos Nutricionais:');
+      doc.fontSize(12).text(`EM Total: ${calculo.em_total_kcal_dia} kcal/dia`);
+      doc.text(`NEM: ${calculo.nem_calculada_kcal_dia} kcal/dia`);
+      doc.text(`Quantidade Recomendada: ${calculo.quantidade_racao_recomendada_g_dia} g/dia`);
+    }
+
+    // Finaliza stream do documento
+    doc.end();
+  } catch (err) {
+    // Trata falha com status 500 caso ocorra erro no banco ou processamento
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Erro ao gerar o PDF', details: err.message });
+    } else {
+      console.error('Erro na geração do stream PDF:', err.message);
+    }
+  }
+};
+
 module.exports = {
   createDietaryForm,
   listDietaryForms,
   getDietaryFormById,
   updateDietaryForm,
   deleteDietaryForm,
+  generatePdfReport,
 };
