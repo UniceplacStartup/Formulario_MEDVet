@@ -86,10 +86,69 @@ const deletePatient = async (req, res) => {
   }
 };
 
+// History
+const getPatientHistory = async (req, res) => {
+  try {
+    const { id } = req.paciente; // Paciente validado pelo middleware
+    const { data_inicio, data_fim, veterinario_id } = req.query;
+
+    // Monta a query para buscar histórico
+    let sql = `
+      SELECT 
+        f.*,
+        u.nome AS veterinario_nome,
+        u.email AS veterinario_email,
+        c.nem_calculada_kcal_dia AS nem_calculada,
+        c.em_total_kcal_dia AS em_total
+      FROM formularios_dieteticos f
+      LEFT JOIN usuarios u ON f.usuario_id = u.id
+      LEFT JOIN calculos_formulario c ON f.id = c.formulario_id
+      WHERE f.paciente_id = $1
+    `;
+
+    const params = [Number(id)]; // Proteção contra tipos BIGINT
+    let paramCount = 2;
+
+    // Filtra por veterinário opcionalmente
+    if (veterinario_id) {
+      sql += ` AND f.usuario_id = $${paramCount}`;
+      params.push(Number(veterinario_id)); // Proteção contra tipos BIGINT
+      paramCount++;
+    }
+
+    // Filtra por data de início
+    if (data_inicio) {
+      sql += ` AND f.created_at >= $${paramCount}`;
+      params.push(data_inicio);
+      paramCount++;
+    }
+
+    // Filtra por data de fim
+    if (data_fim) {
+      sql += ` AND f.created_at <= $${paramCount}`;
+      params.push(data_fim);
+      paramCount++;
+    }
+
+    // Ordem decrescente obrigatória
+    sql += ` ORDER BY f.created_at DESC`;
+
+    const { rows: historico } = await db.query(sql, params);
+
+    return res.status(200).json({
+      paciente: req.paciente,
+      historico
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erro ao buscar histórico do paciente', details: err.message });
+  }
+};
+
 module.exports = {
   createPatient,
   listPatients,
   getPatientById,
   updatePatient,
   deletePatient,
+  getPatientHistory,
 };

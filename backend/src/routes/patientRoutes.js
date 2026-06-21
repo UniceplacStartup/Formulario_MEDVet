@@ -13,5 +13,6 @@ router.get('/pacientes', checkRole('admin', 'veterinario', 'atendente'), patient
 router.get('/pacientes/:id', checkRole('admin', 'veterinario', 'atendente'), validatePatientAccess, patientController.getPatientById);
 router.put('/pacientes/:id', checkRole('admin', 'veterinario'), validatePatientAccess, patientController.updatePatient);
 router.delete('/pacientes/:id', checkRole('admin', 'veterinario'), validatePatientAccess, patientController.deletePatient);
+router.get('/pacientes/:id/historico', checkRole('admin', 'veterinario', 'atendente'), validatePatientAccess, patientController.getPatientHistory);
 
 module.exports = router;
